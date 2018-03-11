@@ -217,8 +217,11 @@ public:
 	/**************************************************************************/
 	bool init(){
 		/* Make sure we're actually connected */
-		uint8_t x = read8(TSL2561_REGISTER_ID);
-		if (x & 0xF0 != 0x10) { // ID code for TSL2561
+		uint16_t x = read16(TSL2561_REGISTER_ID);
+		uint8_t partA = (uint8_t)((x & 0xFF00) >> 8);
+		uint8_t partB = (uint8_t)(x & 0x00FF);
+		
+		if (partA & 0xF0 != 0x10) { // ID code for TSL2561
 			return false;
 		}
 		_tsl2561Initialised = true;
@@ -525,7 +528,7 @@ public:
 		event->version   = sizeof(sensors_event_t);
 		event->sensor_id = _tsl2561SensorID;
 		event->type      = SENSOR_TYPE_LIGHT;
-		event->timestamp = millis();
+		event->timestamp = (int32_t)ofGetSystemTimeMicros() / 1000;
 		
 		/* Calculate the actual lux value */
 		getLuminosity(&broadband, &ir);
@@ -629,13 +632,13 @@ private:
 		switch (_tsl2561IntegrationTime)
 		{
 			case TSL2561_INTEGRATIONTIME_13MS:
-				delay(TSL2561_DELAY_INTTIME_13MS);  // KTOWN: Was 14ms
+				usleep(TSL2561_DELAY_INTTIME_13MS);  // KTOWN: Was 14ms
 				break;
 			case TSL2561_INTEGRATIONTIME_101MS:
-				delay(TSL2561_DELAY_INTTIME_101MS); // KTOWN: Was 102ms
+				usleep(TSL2561_DELAY_INTTIME_101MS); // KTOWN: Was 102ms
 				break;
 			default:
-				delay(TSL2561_DELAY_INTTIME_402MS); // KTOWN: Was 403ms
+				usleep(TSL2561_DELAY_INTTIME_402MS); // KTOWN: Was 403ms
 				break;
 		}
 		

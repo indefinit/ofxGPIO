@@ -252,7 +252,7 @@ public:
 	 */
 	/**************************************************************************/
 	void setIntegrationTime(tsl2561IntegrationTime_t time){
-		if (!_tsl2561Initialised) begin();
+		if (!_tsl2561Initialised) init();
 		
 		/* Enable the device by setting the control bit to 0x03 */
 		enable();
@@ -273,7 +273,7 @@ public:
 	 */
 	/**************************************************************************/
 	void setGain(tsl2561Gain_t gain){
-		if (!_tsl2561Initialised) begin();
+		if (!_tsl2561Initialised) init();
 		
 		/* Enable the device by setting the control bit to 0x03 */
 		enable();
@@ -333,7 +333,7 @@ public:
 	void getLuminosity (uint16_t *broadband, uint16_t *ir){
 		bool valid = false;
 		
-		if (!_tsl2561Initialised) begin();
+		if (!_tsl2561Initialised) init();
 		
 		/* If Auto gain disabled get a single reading and continue */
 		if(!_tsl2561AutoGain)

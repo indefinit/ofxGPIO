@@ -176,14 +176,9 @@ public:
 	 keep track if you have many sensors in use
 	 */
 	/**************************************************************************/
-	Adafruit_TSL2561_Unified(uint8_t addr, int32_t sensorID = -1){
-		_addr = addr;
-		_tsl2561Initialised = false;
-		_tsl2561AutoGain = false;
-		_tsl2561IntegrationTime = TSL2561_INTEGRATIONTIME_13MS;
-		_tsl2561Gain = TSL2561_GAIN_1X;
-		_tsl2561SensorID = sensorID;
-	}
+	Adafruit_TSL2561_Unified(uint8_t addr=TSL2561_ADDR_FLOAT, int32_t sensorID = -1):	_addr(addr),_tsl2561Initialised(false),_tsl2561AutoGain(false),_tsl2561IntegrationTime(TSL2561_INTEGRATIONTIME_13MS),_tsl2561Gain(TSL2561_GAIN_1X), _tsl2561SensorID(sensorID)
+	{}
+	
 	/**************************************************************************/
 	/*!
 	 @brief Initializes I2C and configures the sensor with default Wire I2C
@@ -191,9 +186,10 @@ public:
 	 @returns True if sensor is found and initialized, false otherwise.
 	 */
 	/**************************************************************************/
-	bool begin(void){
+	void setup(void){
 		_i2c = std::make_shared<I2c>("/dev/i2c-1");//default i2c bus
-		return init();
+		_i2c->addressSet(_addr);//0x39
+		init();
 	}
 	/**************************************************************************/
 	/*!
@@ -203,9 +199,9 @@ public:
 	 @returns True if sensor is found and initialized, false otherwise.
 	 */
 	/**************************************************************************/
-	bool begin(std::shared_ptr<I2c> i2c){
+	void setup(std::shared_ptr<I2c> i2c){
 		_i2c = i2c;
-		return init();
+		init();
 	}
 	/**************************************************************************/
 	/*!
@@ -215,25 +211,25 @@ public:
 	 @returns True if sensor is found and initialized, false otherwise.
 	 */
 	/**************************************************************************/
-	bool init(){
-		/* Make sure we're actually connected */
-		uint16_t x = read16(TSL2561_REGISTER_ID);
-		uint8_t partA = (uint8_t)((x & 0xFF00) >> 8);
-		uint8_t partB = (uint8_t)(x & 0x00FF);
+	void init(){
+		// Power ON mode(0x03)
+		char config[2] = {0};
+		config[0] = 0x00 | 0x80;
+		config[1] = 0x03;
+		_i2c->writeByte((uint8_t) config[0],(uint8_t)config[1]);
 		
-		if (partA & 0xF0 != 0x10) { // ID code for TSL2561
-			return false;
-		}
+		// Select timing register(0x01 | 0x80)
+		// Nominal integration time = 402ms(0x02)
+		config[0] = 0x01 | 0x80;
+		config[1] = 0x02;
+		_i2c->writeByte((uint8_t) config[0], config[1]);
+		usleep(100);
+
 		_tsl2561Initialised = true;
 		
 		/* Set default integration time and gain */
-		setIntegrationTime(_tsl2561IntegrationTime);
-		setGain(_tsl2561Gain);
-		
-		/* Note: by default, the device is in power down mode on bootup */
-		disable();
-		
-		return true;
+		//setIntegrationTime(_tsl2561IntegrationTime);
+		//setGain(_tsl2561Gain);
 	}
 	
 	/* TSL2561 Functions */
@@ -290,6 +286,38 @@ public:
 		
 		/* Turn the device off to save power */
 		disable();
+	}
+	
+	float getFullSpectrum() {
+		// Read 4 bytes of data from register(0x0C | 0x80)
+		// ch0 lsb, ch0 msb, ch1 lsb, ch1 msb
+		char reg = 0x0C | 0x80;
+		uint8_t data[4] = {0};
+		pBus->readBlock(reg, 4, data);
+		// Convert the data
+		return (data[1] * 256 + data[0]);
+	}
+	
+	float getIR() {
+		// Read 4 bytes of data from register(0x0C | 0x80)
+		// ch0 lsb, ch0 msb, ch1 lsb, ch1 msb
+		char reg = 0x0C | 0x80;
+		uint8_t data[4] = {0};
+		pBus->readBlock(reg, 4, data);
+		// Convert the data
+		return (data[3] * 256 + data[2]);
+	}
+	
+	float getVisible(){
+		// Read 4 bytes of data from register(0x0C | 0x80)
+		// ch0 lsb, ch0 msb, ch1 lsb, ch1 msb
+		char reg = 0x0C | 0x80;
+		uint8_t data[4] = {0};
+		pBus->readBlock(reg, 4, data);
+		// Convert the data
+		float ch0 = (data[1] * 256 + data[0]);
+		float ch1 = (data[3] * 256 + data[2]);
+		return ch0-ch1;
 	}
 	/**************************************************************************/
 	/*!

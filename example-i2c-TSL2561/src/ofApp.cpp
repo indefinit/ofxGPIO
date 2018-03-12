@@ -2,6 +2,8 @@
 
 //--------------------------------------------------------------
 void ofApp::setup(){
+	/*
+	 MANUAL MODE
 	pBus = std::make_shared<I2c>("/dev/i2c-1");
 	pBus->addressSet(0x39);
 	// Power ON mode(0x03)
@@ -16,23 +18,39 @@ void ofApp::setup(){
 	config[1] = 0x02;
 	pBus->writeByte((uint8_t) config[0], config[1]);
 	usleep(100);
+	*/
+	mSensor.setup();
+	
 }
 
 //--------------------------------------------------------------
 void ofApp::update(){
-	// Read 4 bytes of data from register(0x0C | 0x80)
-	// ch0 lsb, ch0 msb, ch1 lsb, ch1 msb
-	char reg = 0x0C | 0x80;
-	uint8_t data[4] = {0};
-	//	pBus->write(reg);
-	pBus->readBlock(reg, 4, data);
-	// Convert the data
-	float ch0 = (data[1] * 256 + data[0]);
-	float ch1 = (data[3] * 256 + data[2]);
-	// Output data to screen
-	ofLog() <<"Full Spectrum(IR+Visible) : " << ch0 << " lux" << endl;
-	ofLog() << "Infrared Value : " << ch1 << " lux" << endl;
-	ofLog() << "Visible Value : " << ch0-ch1 << " lux" << endl;
+	if(ofGetSeconds() % 5 == 0){
+		/*
+		 MANUAL MODE
+		// Read 4 bytes of data from register(0x0C | 0x80)
+		// ch0 lsb, ch0 msb, ch1 lsb, ch1 msb
+		char reg = 0x0C | 0x80;
+		uint8_t data[4] = {0};
+		pBus->readBlock(reg, 4, data);
+		// Convert the data
+		float ch0 = (data[1] * 256 + data[0]);
+		float ch1 = (data[3] * 256 + data[2]);
+		// Output data to screen
+		ofLog() <<"Full Spectrum(IR+Visible) : " << ch0 << " lux" << endl;
+		ofLog() << "Infrared Value : " << ch1 << " lux" << endl;
+		ofLog() << "Visible Value : " << ch0-ch1 << " lux" << endl;
+		*/
+		
+		
+		/*
+		 API MODE
+		 */
+		ofLog() <<"Full Spectrum(IR+Visible) : " << mSensor.getFullSpectrum() << " lux" << endl;
+		ofLog() << "Infrared Value : " << mSensor.getIR() << " lux" << endl;
+		ofLog() << "Visible Value : " << mSensor.getVisible() << " lux" << endl;
+	}
+
 }
 
 //--------------------------------------------------------------

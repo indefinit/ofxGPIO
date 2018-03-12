@@ -22,10 +22,10 @@ void ofApp::setup(){
 void ofApp::update(){
 	// Read 4 bytes of data from register(0x0C | 0x80)
 	// ch0 lsb, ch0 msb, ch1 lsb, ch1 msb
-	uint8_t reg[1] = {0x0C | 0x80};
+	char reg = 0x0C | 0x80;
 	uint8_t data[4] = {0};
 	//	pBus->write(reg);
-	pBus->readBlock(reg, 4,data);
+	pBus->readBlock(reg, 4, data);
 	// Convert the data
 	float ch0 = (data[1] * 256 + data[0]);
 	float ch1 = (data[3] * 256 + data[2]);

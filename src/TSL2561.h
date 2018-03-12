@@ -293,7 +293,7 @@ public:
 		// ch0 lsb, ch0 msb, ch1 lsb, ch1 msb
 		char reg = 0x0C | 0x80;
 		uint8_t data[4] = {0};
-		pBus->readBlock(reg, 4, data);
+		_i2c->readBlock(reg, 4, data);
 		// Convert the data
 		return (data[1] * 256 + data[0]);
 	}
@@ -303,7 +303,7 @@ public:
 		// ch0 lsb, ch0 msb, ch1 lsb, ch1 msb
 		char reg = 0x0C | 0x80;
 		uint8_t data[4] = {0};
-		pBus->readBlock(reg, 4, data);
+		_i2c->readBlock(reg, 4, data);
 		// Convert the data
 		return (data[3] * 256 + data[2]);
 	}
@@ -313,7 +313,7 @@ public:
 		// ch0 lsb, ch0 msb, ch1 lsb, ch1 msb
 		char reg = 0x0C | 0x80;
 		uint8_t data[4] = {0};
-		pBus->readBlock(reg, 4, data);
+		_i2c->readBlock(reg, 4, data);
 		// Convert the data
 		float ch0 = (data[1] * 256 + data[0]);
 		float ch1 = (data[3] * 256 + data[2]);
